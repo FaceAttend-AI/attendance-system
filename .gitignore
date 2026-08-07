@@ -1,0 +1,9 @@
+dataset/
+models/
+attendance.db
+__pycache__/
+*.pkl
+*.h5
+*.pyc
+.deepface/
+*.csv
