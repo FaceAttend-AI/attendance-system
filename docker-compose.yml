@@ -1,0 +1,66 @@
+version: '3.8'
+
+# ══════════════════════════════════════════════
+#   FaceAttend - Docker Compose
+#   Run: docker-compose up -d
+# ══════════════════════════════════════════════
+
+services:
+
+  # ── Streamlit Dashboard ────────────────────
+  dashboard:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: faceattend-dashboard
+    ports:
+      - "8501:8501"
+    volumes:
+      - ./attendance.db:/app/attendance.db
+      - ./models:/app/models
+      - ./dataset:/app/dataset
+      - ./student_photos:/app/student_photos
+    environment:
+      - STREAMLIT_SERVER_HEADLESS=true
+      - STREAMLIT_SERVER_PORT=8501
+      - TF_ENABLE_ONEDNN_OPTS=0
+      - TF_CPP_MIN_LOG_LEVEL=3
+    command: >
+      python -m streamlit run dashboard.py
+      --server.address=0.0.0.0
+      --server.port=8501
+      --server.headless=true
+      --browser.gatherUsageStats=false
+    restart: unless-stopped
+    networks:
+      - faceattend-net
+
+  # ── Flask Mobile App ───────────────────────
+  mobile:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: faceattend-mobile
+    ports:
+      - "5000:5000"
+    volumes:
+      - ./attendance.db:/app/attendance.db
+    environment:
+      - TF_CPP_MIN_LOG_LEVEL=3
+      - FLASK_ENV=production
+    command: python mobile_app.py
+    restart: unless-stopped
+    depends_on:
+      - dashboard
+    networks:
+      - faceattend-net
+
+# ── Volumes ────────────────────────────────
+volumes:
+  attendance-data:
+    driver: local
+
+# ── Networks ───────────────────────────────
+networks:
+  faceattend-net:
+    driver: bridge

@@ -1,0 +1,55 @@
+# ── Base image ───────────────────────────────────────
+FROM python:3.10-slim
+
+# ── Labels ───────────────────────────────────────────
+LABEL maintainer="Manikandan L.R"
+LABEL description="FaceAttend - Automated Attendance System"
+LABEL version="2.0"
+
+# ── Set working directory ────────────────────────────
+WORKDIR /app
+
+# ── Install system dependencies ──────────────────────
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    libgl1-mesa-glx \
+    libglib2.0-0 \
+    libsm6 \
+    libxext6 \
+    libxrender-dev \
+    libgomp1 \
+    ffmpeg \
+    curl \
+    && rm -rf /var/lib/apt/lists/*
+
+# ── Copy requirements first (layer caching) ──────────
+COPY requirements-docker.txt .
+
+# ── Install Python packages ───────────────────────────
+RUN pip install --no-cache-dir --upgrade pip && \
+    pip install --no-cache-dir -r requirements-docker.txt
+
+# ── Copy all project files ───────────────────────────
+COPY dashboard.py .
+COPY mobile_app.py .
+COPY attendance.py .
+COPY build_embeddings.py .
+COPY collect_faces.py .
+COPY email_report.py .
+COPY liveness.py .
+
+# ── Create required directories ──────────────────────
+RUN mkdir -p dataset models student_photos
+
+# ── Expose ports ─────────────────────────────────────
+EXPOSE 8501 5000
+
+# ── Health check ─────────────────────────────────────
+HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \
+    CMD curl -f http://localhost:8501/_stcore/health || exit 1
+
+# ── Default: run dashboard ───────────────────────────
+CMD ["python", "-m", "streamlit", "run", "dashboard.py", \
+     "--server.address=0.0.0.0", \
+     "--server.port=8501", \
+     "--server.headless=true", \
+     "--browser.gatherUsageStats=false"]
