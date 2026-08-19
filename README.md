@@ -53,4 +53,21 @@ Built with DeepFace (FaceNet model), OpenCV, TensorFlow, and Streamlit.
 
 
 \## 📁 Project Structure
-
+🏢 FaceAttend-AI (Organization)
+│
+├── 👤 Arjun karthik  (Member)
+├── 👤 Afrid Ahamed   (Owner)
+│
+└── 📦 attendance-system (Repository)
+    ├── dashboard.py
+    ├── attendance.py
+    ├── collect_faces.py
+    ├── build_embeddings.py
+    ├── email_report.py
+    ├── liveness.py
+    ├── mobile_app.py
+    ├── multi_camera.py
+    ├── Dockerfile
+    ├── docker-compose.yml
+    ├── requirements.txt
+    └── README.md
